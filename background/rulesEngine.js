@@ -42,26 +42,33 @@ export class RulesEngine {
   }
 
   static evaluateRule(rule, item) {
-    if (!rule.enabled) return false;
+    if (!rule.enabled) return { matched: false, matchedCriteria: [] };
 
     const tests = [];
+    const matchedCriteria = [];
 
     // Extension condition
     if (rule.extension && rule.extension.trim() !== '') {
       let ext = rule.extension.trim().toLowerCase();
       if (!ext.startsWith('.')) ext = '.' + ext;
       const fileExt = this.getExtension(item.filename);
-      tests.push(fileExt === ext);
+      const isExtMatched = fileExt === ext;
+      tests.push(isExtMatched);
+      if (isExtMatched) matchedCriteria.push(`extension (${ext})`);
     }
 
     // MIME type condition
     if (rule.mime && rule.mime.trim() !== '') {
-      tests.push(this.matchesCondition(item.mime, rule.mimeOperator || 'contains', rule.mime));
+      const isMimeMatched = this.matchesCondition(item.mime, rule.mimeOperator || 'contains', rule.mime);
+      tests.push(isMimeMatched);
+      if (isMimeMatched) matchedCriteria.push(`mime (${rule.mimeOperator || 'contains'} "${rule.mime}")`);
     }
 
     // Filename pattern condition
     if (rule.filenamePattern && rule.filenamePattern.trim() !== '') {
-      tests.push(this.matchesCondition(item.filename, rule.filenameOperator || 'contains', rule.filenamePattern));
+      const isFilenameMatched = this.matchesCondition(item.filename, rule.filenameOperator || 'contains', rule.filenamePattern);
+      tests.push(isFilenameMatched);
+      if (isFilenameMatched) matchedCriteria.push(`filename (${rule.filenameOperator || 'contains'} "${rule.filenamePattern}")`);
     }
 
     // Origin / Domain condition (Flexible domain & referrer matcher)
@@ -84,22 +91,25 @@ export class RulesEngine {
       });
 
       tests.push(matchedOrigin);
+      if (matchedOrigin) matchedCriteria.push(`origin (${cleanDomain})`);
     }
 
-    if (tests.length === 0) return false;
+    if (tests.length === 0) return { matched: false, matchedCriteria: [] };
 
-    return rule.matchMode === 'any' ? tests.some(Boolean) : tests.every(Boolean);
+    const isRuleSatisfied = rule.matchMode === 'any' ? tests.some(Boolean) : tests.every(Boolean);
+    return { matched: isRuleSatisfied, matchedCriteria: isRuleSatisfied ? matchedCriteria : [] };
   }
 
   static determineTarget(rules, item) {
     for (const rule of rules) {
-      if (this.evaluateRule(rule, item)) {
+      const evaluation = this.evaluateRule(rule, item);
+      if (evaluation.matched) {
         const sanitizedFolder = this.sanitizeSubfolder(rule.destination);
         const originalName = item.filename.replace(/^.*[\\/]/, '');
         const targetPath = sanitizedFolder ? `${sanitizedFolder}/${originalName}` : originalName;
-        return { matched: true, rule, targetPath };
+        return { matched: true, rule, targetPath, matchedCriteria: evaluation.matchedCriteria };
       }
     }
-    return { matched: false, rule: null, targetPath: item.filename };
+    return { matched: false, rule: null, targetPath: item.filename, matchedCriteria: [] };
   }
 }

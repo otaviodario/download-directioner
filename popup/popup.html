@@ -42,14 +42,20 @@
     </div>
 
     <main class="app-content">
-      <div class="action-bar">
-        <button id="btnNewRule" class="btn btn-primary" data-i18n="btnNewRule">+ New Rule</button>
-        <div class="util-actions">
-          <button id="btnExport" class="btn btn-secondary" data-i18n="btnExport" title="Export rules as JSON">Export</button>
-          <button id="btnImport" class="btn btn-secondary" data-i18n="btnImport" title="Import rules from JSON">Import</button>
-          <input type="file" id="importFileInput" accept=".json" style="display: none;">
-        </div>
+      <div class="main-tabs-bar" role="tablist">
+        <button id="tabBtnRules" class="tab-nav-btn active" role="tab" data-i18n="tabRules">Rules</button>
+        <button id="tabBtnHistory" class="tab-nav-btn" role="tab" data-i18n="tabHistory">History (10 Days)</button>
       </div>
+
+      <div id="rulesTabContent" class="tab-panel">
+        <div class="action-bar">
+          <button id="btnNewRule" class="btn btn-primary" data-i18n="btnNewRule">+ New Rule</button>
+          <div class="util-actions">
+            <button id="btnExport" class="btn btn-secondary" data-i18n="btnExport" title="Export rules as JSON">Export</button>
+            <button id="btnImport" class="btn btn-secondary" data-i18n="btnImport" title="Import rules from JSON">Import</button>
+            <input type="file" id="importFileInput" accept=".json" style="display: none;">
+          </div>
+        </div>
 
       <!-- Rule Editor Modal / Container -->
       <section id="ruleFormContainer" class="rule-form card hidden">
@@ -157,6 +163,19 @@
           </div>
         </details>
       </section>
+      </div>
+
+      <!-- History Tab Content -->
+      <div id="historyTabContent" class="tab-panel hidden">
+        <div class="history-actions-bar">
+          <span class="history-caption" data-i18n="txtHistoryCaption">Local routing history of the last 10 days</span>
+          <button id="btnClearHistory" class="btn btn-secondary btn-xs" data-i18n="btnClearHistory">Clear History</button>
+        </div>
+        <ul id="historyList" class="history-list"></ul>
+        <div id="historyEmptyState" class="empty-state hidden" data-i18n="txtHistoryEmpty">
+          No download activity recorded in the last 10 days.
+        </div>
+      </div>
     </main>
   </div>
   <script type="module" src="popup.js"></script>

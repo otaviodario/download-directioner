@@ -497,3 +497,121 @@ input:focus, select:focus {
   border-radius: var(--radius-sm);
   display: none;
 }
+
+/* Tab Navigation */
+.main-tabs-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+.tab-nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-nav-btn:hover {
+  color: var(--text-main);
+}
+
+.tab-nav-btn.active {
+  color: var(--primary-blue);
+  border-bottom-color: var(--primary-blue);
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* History Styles */
+.history-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-caption {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.btn-xs {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.history-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.history-item {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.history-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.history-badge.matched {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.history-badge.unmatched {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.history-filename {
+  font-size: 12px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.history-dest {
+  font-size: 11px;
+  color: var(--primary-blue);
+  word-break: break-all;
+}
+
+.history-filters {
+  font-size: 10px;
+  color: var(--text-muted);
+  background-color: var(--bg-color);
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}

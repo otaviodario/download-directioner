@@ -65,7 +65,15 @@ const i18n = {
     testMatched: 'Matched: Rule',
     testDestination: 'Destination:',
     testNoMatch: 'No match: Default downloads directory.',
-    ruleSaved: 'Rule saved successfully!'
+    ruleSaved: 'Rule saved successfully!',
+    tabRules: 'Rules',
+    tabHistory: 'History (10 Days)',
+    txtHistoryCaption: 'Local routing history of the last 10 days',
+    btnClearHistory: 'Clear History',
+    txtHistoryEmpty: 'No download activity recorded in the last 10 days.',
+    badgeMatched: 'Rule Matched',
+    badgeDefault: 'Default Path',
+    lblHistoryFilters: 'Matched Filters:'
   },
   pt: {
     btnNewRule: '+ Nova Regra',
@@ -124,7 +132,15 @@ const i18n = {
     testMatched: 'Correspondência: Regra',
     testDestination: 'Destino:',
     testNoMatch: 'Sem correspondência: Pasta padrão de downloads.',
-    ruleSaved: 'Regra salva com sucesso!'
+    ruleSaved: 'Regra salva com sucesso!',
+    tabRules: 'Regras',
+    tabHistory: 'Histórico (10 Dias)',
+    txtHistoryCaption: 'Histórico local dos últimos 10 dias',
+    btnClearHistory: 'Limpar Histórico',
+    txtHistoryEmpty: 'Nenhum download registrado nos últimos 10 dias.',
+    badgeMatched: 'Regra Aplicada',
+    badgeDefault: 'Caminho Padrão',
+    lblHistoryFilters: 'Filtros Atendidos:'
   },
   es: {
     btnNewRule: '+ Nueva Regla',
@@ -157,7 +173,7 @@ const i18n = {
     btnCancelRule: 'Cancelar',
     txtPriorityRules: 'Regras por Prioridad',
     txtEmptyState: 'No hay reglas configuradas aún. Haga clic en + Nueva Regla para comenzar.',
-    txtSandboxSummary: 'Simulador de Reglas (Test Bench)',
+    txtSandboxSummary: 'Simulador de Regras (Test Bench)',
     phTestFilename: 'Nombre del archivo de prueba (ej: doc.pdf)',
     phTestMime: 'MIME de prueba (ej: application/pdf)',
     phTestOrigin: 'URL de prueba (ej: https://bling.com.br)',
@@ -183,7 +199,15 @@ const i18n = {
     testMatched: 'Coincidencia: Regra',
     testDestination: 'Destino:',
     testNoMatch: 'Sin coincidencia: Carpeta predeterminada de descargas.',
-    ruleSaved: '¡Regla guardada con éxito!'
+    ruleSaved: '¡Regla guardada con éxito!',
+    tabRules: 'Reglas',
+    tabHistory: 'Historial (10 Días)',
+    txtHistoryCaption: 'Historial local de los últimos 10 días',
+    btnClearHistory: 'Borrar Historial',
+    txtHistoryEmpty: 'No se han registrado descargas en los últimos 10 días.',
+    badgeMatched: 'Regla Aplicada',
+    badgeDefault: 'Ruta Predeterminada',
+    lblHistoryFilters: 'Filtros Cumplidos:'
   }
 };
 
@@ -391,13 +415,130 @@ if (btnPickFolder && ruleDestination) {
   });
 }
 
+const tabBtnRules = document.getElementById('tabBtnRules');
+const tabBtnHistory = document.getElementById('tabBtnHistory');
+const rulesTabContent = document.getElementById('rulesTabContent');
+const historyTabContent = document.getElementById('historyTabContent');
+const historyList = document.getElementById('historyList');
+const historyEmptyState = document.getElementById('historyEmptyState');
+const btnClearHistory = document.getElementById('btnClearHistory');
+
+const LIMITE_DIAS_EXPIRACAO = 10;
+const LIMITE_MS_EXPIRACAO = LIMITE_DIAS_EXPIRACAO * 24 * 60 * 60 * 1000;
+
+function alternar_guia_visualizacao(nome_aba) {
+  if (nome_aba === 'history') {
+    tabBtnRules.classList.remove('active');
+    tabBtnHistory.classList.add('active');
+    rulesTabContent.classList.add('hidden');
+    historyTabContent.classList.remove('hidden');
+    carregar_e_renderizar_historico();
+  } else {
+    tabBtnHistory.classList.remove('active');
+    tabBtnRules.classList.add('active');
+    historyTabContent.classList.add('hidden');
+    rulesTabContent.classList.remove('hidden');
+  }
+}
+
+if (tabBtnRules && tabBtnHistory) {
+  tabBtnRules.addEventListener('click', () => alternar_guia_visualizacao('rules'));
+  tabBtnHistory.addEventListener('click', () => alternar_guia_visualizacao('history'));
+}
+
+function carregar_e_renderizar_historico() {
+  browserAPI.storage.local.get({ directioner_history: [] }, (data) => {
+    const agora = Date.now();
+    let lista_historico = Array.isArray(data.directioner_history) ? data.directioner_history : [];
+
+    // Expurgar itens com mais de 10 dias
+    const historico_valido = lista_historico.filter((item) => {
+      return (agora - (item.timestamp || 0)) <= LIMITE_MS_EXPIRACAO;
+    });
+
+    if (historico_valido.length !== lista_historico.length) {
+      browserAPI.storage.local.set({ directioner_history: historico_valido });
+    }
+
+    renderizar_itens_historico(historico_valido);
+  });
+}
+
+function extrair_pasta_destino(caminho_completo) {
+  if (!caminho_completo || typeof caminho_completo !== 'string') {
+    return 'Downloads/';
+  }
+
+  const caminho_normalizado = caminho_completo.replace(/\\/g, '/');
+  const ultimo_separador = caminho_normalizado.lastIndexOf('/');
+
+  if (ultimo_separador === -1) {
+    return 'Downloads/';
+  }
+
+  const subpasta_destino = caminho_normalizado.substring(0, ultimo_separador).replace(/^\/+|\/+$/g, '');
+  return subpasta_destino ? `Downloads/${subpasta_destino}/` : 'Downloads/';
+}
+
+function renderizar_itens_historico(itens) {
+  historyList.innerHTML = '';
+  const dict = i18n[currentLang];
+
+  if (!itens || itens.length === 0) {
+    historyEmptyState.classList.remove('hidden');
+    historyList.classList.add('hidden');
+    return;
+  }
+
+  historyEmptyState.classList.add('hidden');
+  historyList.classList.remove('hidden');
+
+  itens.forEach((registro) => {
+    const li = document.createElement('li');
+    li.className = 'history-item';
+
+    const data_formatada = new Date(registro.timestamp || Date.now()).toLocaleString();
+    const badge_classe = registro.matched ? 'matched' : 'unmatched';
+    const badge_texto = registro.matched 
+      ? `${dict.badgeMatched}: ${registro.ruleName}` 
+      : dict.badgeDefault;
+
+    const filtros_formatados = (registro.matchedCriteria && registro.matchedCriteria.length > 0)
+      ? registro.matchedCriteria.join(', ')
+      : 'N/A';
+
+    const pasta_exibicao = extrair_pasta_destino(registro.targetPath);
+
+    li.innerHTML = `
+      <div class="history-header">
+        <span>${data_formatada}</span>
+        <span class="history-badge ${badge_classe}">${badge_texto}</span>
+      </div>
+      <div class="history-filename">${registro.originalFilename || 'unnamed'}</div>
+      <div class="history-dest">➜ ${pasta_exibicao}</div>
+      <div class="history-filters"><strong>${dict.lblHistoryFilters}</strong> ${filtros_formatados}</div>
+    `;
+
+    historyList.appendChild(li);
+  });
+}
+
+if (btnClearHistory) {
+  btnClearHistory.addEventListener('click', () => {
+    browserAPI.storage.local.set({ directioner_history: [] }, () => {
+      renderizar_itens_historico([]);
+    });
+  });
+}
+
 // Load Data
 async function loadData() {
   browserAPI.storage.local.get({
     config_enabled: true,
     directioner_rules: [],
     app_language: 'en',
-    form_draft: null
+    form_draft: null,
+    directioner_history: []
   }, (data) => {
     globalToggle.checked = data.config_enabled;
     rules = data.directioner_rules || [];
@@ -406,6 +547,14 @@ async function loadData() {
 
     if (data.form_draft) {
       restoreDraftState(data.form_draft);
+    }
+
+    // Purga silenciosa de registros anteriores a 10 dias na inicialização
+    const agora = Date.now();
+    const historico_bruto = Array.isArray(data.directioner_history) ? data.directioner_history : [];
+    const historico_filtrado = historico_bruto.filter((item) => (agora - (item.timestamp || 0)) <= LIMITE_MS_EXPIRACAO);
+    if (historico_filtrado.length !== historico_bruto.length) {
+      browserAPI.storage.local.set({ directioner_history: historico_filtrado });
     }
   });
 }

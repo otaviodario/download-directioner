@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Download Directioner",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Automatically route downloads to custom subfolders based on file types, names, MIME types, or website origins.",
   "icons": {
     "16": "icons/logo.png",
