@@ -27,7 +27,7 @@
 
 ## 📂 Project Structure
 
-```text
+```
 Download Directioner/
 ├── manifest.json            # MV3 multi-browser manifest
 ├── icons/
@@ -39,3 +39,37 @@ Download Directioner/
     ├── popup.html           # 380px compact user interface
     ├── popup.css            # Dark/Light responsive design system
     └── popup.js             # Form controllers, i18n dictionary, draft manager
+```
+
+---
+
+## 🚀 Installation & Local Development
+
+### Chromium-based Browsers (Chrome, Edge, Opera GX, Brave, Vivaldi)
+1. Clone or download this repository.
+2. Open your browser and navigate to the extensions page:
+   - Chrome / Brave: `chrome://extensions`
+   - Edge: `edge://extensions`
+   - Opera GX: `opera://extensions`
+3. Enable **Developer Mode** (top-right toggle).
+4. Click **Load unpacked** (*Carregar sem compactação*).
+5. Select the root folder of this project.
+
+### Mozilla Firefox
+1. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on...** (*Carregar extensão temporária...*).
+3. Select the `manifest.json` file inside the project directory.
+
+---
+
+## 🔒 Security & Directory Traversal Protection
+
+By design and web platform sandbox constraints, extensions can only create directories and files **relative to the user's default Downloads folder**. The engine includes built-in sanitization to strip dangerous patterns like `../` to prevent path traversal.
+
+---
+
+## 📄 License
+
+This project is open-source and licensed under the MIT License.
+
+---
