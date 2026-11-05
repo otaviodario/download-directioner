@@ -16,6 +16,7 @@
   - Filename pattern (Contains, Starts with, Ends with, Regular Expressions)
   - Source domain / Referrer (e.g., `bling.com.br`)
   - MIME types (e.g., `application/pdf`)
+- **10-Day Routing Audit History:** Dedicated tab showing real-time routing decisions, winning rules, satisfied filters, and target folders, featuring zero-telemetry local storage with automatic purge of records older than 10 days.
 - **Cross-Browser Engine:** Native support for Chromium browsers (`chrome.downloads.onDeterminingFilename`) and Mozilla Firefox fallback architecture.
 - **Trilingual UI:** Switch between **English (EN)**, **Portuguese (PT-BR)**, and **Spanish (ES)** in real time.
 - **Anti-Reset Draft Saver:** Form data is preserved automatically if the popup loses focus or you switch browser tabs.
@@ -33,12 +34,12 @@ Download Directioner/
 ├── icons/
 │   └── logo.png             # Official icon
 ├── background/
-│   ├── background.js        # Background Service Worker / event adapter
-│   └── rulesEngine.js       # Standalone matching and path sanitization engine
+│   ├── background.js        # Background Service Worker / event adapter & history recorder
+│   └── rulesEngine.js       # Matching engine with detailed criteria reporting
 └── popup/
-    ├── popup.html           # 380px compact user interface
+    ├── popup.html           # 380px compact user interface with Rules & History tabs
     ├── popup.css            # Dark/Light responsive design system
-    └── popup.js             # Form controllers, i18n dictionary, draft manager
+    └── popup.js             # Form controllers, history viewer, i18n dictionary, draft manager
 ```
 
 ---
@@ -71,5 +72,3 @@ By design and web platform sandbox constraints, extensions can only create direc
 ## 📄 License
 
 This project is open-source and licensed under the MIT License.
-
----
