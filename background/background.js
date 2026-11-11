@@ -75,6 +75,7 @@ if (browserAPI.downloads && browserAPI.downloads.onDeterminingFilename) {
 
       if (result.matched) {
         console.log('[Download Directioner] Matched rule:', result.rule.name, '-> Routing to:', result.targetPath);
+        processedDownloads.add(item.id);
         registrar_historico_download({
           originalFilename: item.filename,
           targetPath: result.targetPath,
@@ -111,7 +112,6 @@ if (browserAPI.downloads && browserAPI.downloads.onDeterminingFilename) {
 else if (browserAPI.downloads && browserAPI.downloads.onCreated) {
   browserAPI.downloads.onCreated.addListener(async (item) => {
     if (processedDownloads.has(item.id)) {
-      processedDownloads.delete(item.id);
       return;
     }
 
@@ -167,6 +167,30 @@ else if (browserAPI.downloads && browserAPI.downloads.onCreated) {
         matchedCriteria: ['No rules matched criteria'],
         url: item.url
       });
+    }
+  });
+}
+
+// Global Download Completion Observer: remove os downloads redirecionados da lista nativa do navegador
+if (browserAPI.downloads && browserAPI.downloads.onChanged) {
+  browserAPI.downloads.onChanged.addListener((delta) => {
+    if (!processedDownloads.has(delta.id)) {
+      return;
+    }
+
+    const download_completo = delta.state && delta.state.current === 'complete';
+    const download_com_falha = delta.error && delta.error.current;
+
+    if (download_completo || download_com_falha) {
+      setTimeout(() => {
+        try {
+          browserAPI.downloads.erase({ id: delta.id }, () => {
+            processedDownloads.delete(delta.id);
+          });
+        } catch (erro_erase) {
+          processedDownloads.delete(delta.id);
+        }
+      }, 500);
     }
   });
 }
