@@ -73,7 +73,11 @@ const i18n = {
     txtHistoryEmpty: 'No download activity recorded in the last 10 days.',
     badgeMatched: 'Rule Matched',
     badgeDefault: 'Default Path',
-    lblHistoryFilters: 'Matched Filters:'
+    lblHistoryFilters: 'Matched Filters:',
+    critExtension: 'extension',
+    critOrigin: 'origin',
+    critMime: 'mime',
+    critFilename: 'filename'
   },
   pt: {
     btnNewRule: '+ Nova Regra',
@@ -140,7 +144,11 @@ const i18n = {
     txtHistoryEmpty: 'Nenhum download registrado nos últimos 10 dias.',
     badgeMatched: 'Regra Aplicada',
     badgeDefault: 'Caminho Padrão',
-    lblHistoryFilters: 'Filtros Atendidos:'
+    lblHistoryFilters: 'Filtros Atendidos:',
+    critExtension: 'extensão',
+    critOrigin: 'origem',
+    critMime: 'tipo MIME',
+    critFilename: 'nome do arquivo'
   },
   es: {
     btnNewRule: '+ Nueva Regla',
@@ -195,7 +203,7 @@ const i18n = {
     msgRequiredFields: 'Nombre de la Regla y Carpeta de Destino son obligatorios.',
     msgImportInvalid: 'Archivo de reglas con formato no válido.',
     msgImportParseError: 'No se pudo leer el archivo JSON.',
-    msgImportSuccess: 'Reglas importadas con éxito.',
+    msgImportSuccess: 'Regras importadas con éxito.',
     testMatched: 'Coincidencia: Regra',
     testDestination: 'Destino:',
     testNoMatch: 'Sin coincidencia: Carpeta predeterminada de descargas.',
@@ -207,7 +215,11 @@ const i18n = {
     txtHistoryEmpty: 'No se han registrado descargas en los últimos 10 días.',
     badgeMatched: 'Regla Aplicada',
     badgeDefault: 'Ruta Predeterminada',
-    lblHistoryFilters: 'Filtros Cumplidos:'
+    lblHistoryFilters: 'Filtros Cumplidos:',
+    critExtension: 'extensión',
+    critOrigin: 'origen',
+    critMime: 'tipo MIME',
+    critFilename: 'nombre de archivo'
   }
 };
 
@@ -292,6 +304,10 @@ function applyLanguage(lang) {
   const formTitle = document.getElementById('formTitle');
   if (formTitle) {
     formTitle.textContent = editingRuleId ? dict.formTitleEdit : dict.formTitleAdd;
+  }
+
+  if (historyTabContent && !historyTabContent.classList.contains('hidden')) {
+    carregar_e_renderizar_historico();
   }
 
   browserAPI.storage.local.set({ app_language: currentLang });
@@ -480,9 +496,18 @@ function extrair_pasta_destino(caminho_completo) {
   return subpasta_destino ? `Downloads/${subpasta_destino}/` : 'Downloads/';
 }
 
+function formatar_criterio_traduzido(criterio, dict) {
+  if (!criterio || typeof criterio !== 'string') return '';
+  return criterio
+    .replace(/^extension\b/i, dict.critExtension || 'extension')
+    .replace(/^origin\b/i, dict.critOrigin || 'origin')
+    .replace(/^mime\b/i, dict.critMime || 'mime')
+    .replace(/^filename\b/i, dict.critFilename || 'filename');
+}
+
 function renderizar_itens_historico(itens) {
   historyList.innerHTML = '';
-  const dict = i18n[currentLang];
+  const dict = i18n[currentLang] || i18n.en;
 
   if (!itens || itens.length === 0) {
     historyEmptyState.classList.remove('hidden');
@@ -504,7 +529,7 @@ function renderizar_itens_historico(itens) {
       : dict.badgeDefault;
 
     const filtros_formatados = (registro.matchedCriteria && registro.matchedCriteria.length > 0)
-      ? registro.matchedCriteria.join(', ')
+      ? registro.matchedCriteria.map((c) => formatar_criterio_traduzido(c, dict)).join(', ')
       : 'N/A';
 
     const pasta_exibicao = extrair_pasta_destino(registro.targetPath);
